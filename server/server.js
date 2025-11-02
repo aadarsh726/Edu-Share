@@ -25,6 +25,8 @@ console.log('✅ Comments route registered at /api/comments');
 app.use('/api/chatbot', require('./routes/chatbot'));
 console.log('✅ Chatbot route registered at /api/chatbot');
 app.use('/api/users', require('./routes/users'));
+app.use('/api/leaderboard', require('./routes/leaderboard'));
+console.log('✅ Leaderboard route registered at /api/leaderboard');
 
 // 6. Connect to Database
 // (Your 'connectDB' function and 'app.listen' code go here)

@@ -1,17 +1,26 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Card, Button, Collapse, Form, InputGroup } from 'react-bootstrap';
-import { Chat, Send } from 'react-bootstrap-icons';
+import { Chat, Send, Heart, HeartFill } from 'react-bootstrap-icons';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import AuthContext from '../context/AuthContext';
 
-const PostCard = ({ post, onCommentAdded, showToast }) => {
+const PostCard = ({ post: initialPost, onCommentAdded, showToast }) => {
+    // Local state for post to handle optimistic updates
+    const [post, setPost] = useState(initialPost);
     const [showComments, setShowComments] = useState(false);
     const [commentText, setCommentText] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [currentUsername, setCurrentUsername] = useState('');
     const [loadingUsername, setLoadingUsername] = useState(false);
+    const [likingPost, setLikingPost] = useState(false);
+    const [likingComments, setLikingComments] = useState({}); // Track which comment is being liked
     const { auth } = useContext(AuthContext);
+
+    // Update local post state when prop changes
+    useEffect(() => {
+        setPost(initialPost);
+    }, [initialPost]);
 
     // Fetch current user's username when component mounts (if authenticated)
     useEffect(() => {
@@ -56,7 +65,9 @@ const PostCard = ({ post, onCommentAdded, showToast }) => {
                 { text: commentText, username: currentUsername }
             );
 
-            // Update the post with new comment
+            // Update local state immediately
+            setPost(response.data);
+            // Update parent component
             onCommentAdded && onCommentAdded(response.data);
             setCommentText('');
             showToast && showToast('success', 'Comment added successfully!');
@@ -65,6 +76,140 @@ const PostCard = ({ post, onCommentAdded, showToast }) => {
             showToast && showToast('error', 'Failed to add comment. Please try again.');
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    // Check if current user has liked the post
+    const isPostLiked = () => {
+        if (!auth.isAuthenticated || !auth.user?.id || !post.likes) {
+            return false;
+        }
+        return post.likes.some(likeId => {
+            const id = typeof likeId === 'object' ? likeId._id : likeId;
+            return id === auth.user.id;
+        });
+    };
+
+    // Get post like count
+    const getPostLikeCount = () => {
+        return post.likes ? post.likes.length : 0;
+    };
+
+    // Handle post like/unlike toggle
+    const handlePostLikeToggle = async () => {
+        if (!auth.isAuthenticated) {
+            showToast && showToast('error', 'Please log in to like posts.');
+            return;
+        }
+
+        const isLiked = isPostLiked();
+
+        try {
+            setLikingPost(true);
+            
+            // Optimistic update - update UI immediately
+            const updatedLikes = isLiked 
+                ? (post.likes || []).filter(likeId => {
+                    const id = typeof likeId === 'object' ? likeId._id : likeId;
+                    return id !== auth.user.id;
+                })
+                : [...(post.likes || []), auth.user.id];
+            
+            setPost({ ...post, likes: updatedLikes });
+
+            const endpoint = isLiked ? `/posts/${post._id}/unlike` : `/posts/${post._id}/like`;
+            const response = await api.post(
+                endpoint,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                }
+            );
+
+            // Update with server response
+            setPost(response.data.post);
+            // Update parent component
+            onCommentAdded && onCommentAdded(response.data.post);
+        } catch (err) {
+            console.error('Failed to toggle post like:', err);
+            // Revert optimistic update on error
+            setPost(initialPost);
+            showToast && showToast('error', err.response?.data?.msg || 'Failed to update like. Please try again.');
+        } finally {
+            setLikingPost(false);
+        }
+    };
+
+    // Check if current user has liked a comment
+    const isCommentLiked = (comment) => {
+        if (!auth.isAuthenticated || !auth.user?.id || !comment.likes) {
+            return false;
+        }
+        return comment.likes.some(likeId => {
+            const id = typeof likeId === 'object' ? likeId._id : likeId;
+            return id === auth.user.id;
+        });
+    };
+
+    // Get comment like count
+    const getCommentLikeCount = (comment) => {
+        return comment.likes ? comment.likes.length : 0;
+    };
+
+    // Handle comment like/unlike toggle
+    const handleCommentLikeToggle = async (comment) => {
+        if (!auth.isAuthenticated) {
+            showToast && showToast('error', 'Please log in to like comments.');
+            return;
+        }
+
+        const isLiked = isCommentLiked(comment);
+        const commentKey = comment.createdAt;
+
+        try {
+            setLikingComments(prev => ({ ...prev, [commentKey]: true }));
+            
+            // Optimistic update
+            const updatedComments = post.comments.map(c => {
+                if (c.createdAt === comment.createdAt) {
+                    const updatedLikes = isLiked
+                        ? (c.likes || []).filter(likeId => {
+                            const id = typeof likeId === 'object' ? likeId._id : likeId;
+                            return id !== auth.user.id;
+                        })
+                        : [...(c.likes || []), auth.user.id];
+                    return { ...c, likes: updatedLikes };
+                }
+                return c;
+            });
+            setPost({ ...post, comments: updatedComments });
+
+            const endpoint = isLiked 
+                ? `/comments/${post._id}/unlike` 
+                : `/comments/${post._id}/like`;
+            const response = await api.post(
+                endpoint,
+                { commentCreatedAt: comment.createdAt },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                }
+            );
+
+            // Update with server response
+            setPost(response.data.post);
+            // Update parent component
+            onCommentAdded && onCommentAdded(response.data.post);
+        } catch (err) {
+            console.error('Failed to toggle comment like:', err);
+            // Revert optimistic update on error
+            setPost(initialPost);
+            showToast && showToast('error', err.response?.data?.msg || 'Failed to update like. Please try again.');
+        } finally {
+            setLikingComments(prev => ({ ...prev, [commentKey]: false }));
         }
     };
 
@@ -79,7 +224,42 @@ const PostCard = ({ post, onCommentAdded, showToast }) => {
                 </Card.Subtitle>
                 <Card.Text style={{ whiteSpace: 'pre-wrap' }}>{post.content}</Card.Text>
             </Card.Body>
-            <Card.Footer className="bg-transparent border-top border-secondary d-flex justify-content-end">
+            <Card.Footer className="bg-transparent border-top border-secondary d-flex justify-content-between align-items-center">
+                {/* Post Like Button */}
+                <Button
+                    variant="link"
+                    className="p-0 text-decoration-none"
+                    onClick={handlePostLikeToggle}
+                    disabled={likingPost || !auth.isAuthenticated}
+                    style={{
+                        color: isPostLiked() ? '#ff6b6b' : '#6c757d',
+                        border: 'none',
+                        background: 'none',
+                        padding: '0.25rem 0.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem'
+                    }}
+                    title={isPostLiked() ? 'Unlike this post' : 'Like this post'}
+                >
+                    {isPostLiked() ? (
+                        <HeartFill size={18} style={{ color: '#ff6b6b' }} />
+                    ) : (
+                        <Heart size={18} style={{ color: '#6c757d' }} />
+                    )}
+                    <span 
+                        style={{ 
+                            fontSize: '0.875rem',
+                            color: isPostLiked() ? '#ff6b6b' : '#6c757d',
+                            marginLeft: '0.25rem'
+                        }}
+                    >
+                        {getPostLikeCount() > 0 && getPostLikeCount()}
+                    </span>
+                    {likingPost && <span className="ms-1" style={{ fontSize: '0.75rem' }}>...</span>}
+                </Button>
+
+                {/* Comment Button */}
                 <Button 
                     variant="outline-primary" 
                     size="sm"
@@ -157,13 +337,50 @@ const PostCard = ({ post, onCommentAdded, showToast }) => {
                                                 })}
                                             </small>
                                         </div>
-                                        <p className="mb-0 text-white small" style={{ 
+                                        <p className="mb-2 text-white small" style={{ 
                                             whiteSpace: 'pre-wrap',
                                             fontSize: '0.9rem',
                                             lineHeight: '1.4'
                                         }}>
                                             {comment.text}
                                         </p>
+                                        {/* Comment Like Button */}
+                                        <div className="d-flex align-items-center">
+                                            <Button
+                                                variant="link"
+                                                className="p-0 text-decoration-none"
+                                                onClick={() => handleCommentLikeToggle(comment)}
+                                                disabled={likingComments[comment.createdAt] || !auth.isAuthenticated}
+                                                style={{
+                                                    color: isCommentLiked(comment) ? '#ff6b6b' : '#6c757d',
+                                                    border: 'none',
+                                                    background: 'none',
+                                                    padding: '0.25rem 0.5rem',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.25rem'
+                                                }}
+                                                title={isCommentLiked(comment) ? 'Unlike this comment' : 'Like this comment'}
+                                            >
+                                                {isCommentLiked(comment) ? (
+                                                    <HeartFill size={16} style={{ color: '#ff6b6b' }} />
+                                                ) : (
+                                                    <Heart size={16} style={{ color: '#6c757d' }} />
+                                                )}
+                                                <span 
+                                                    style={{ 
+                                                        fontSize: '0.875rem',
+                                                        color: isCommentLiked(comment) ? '#ff6b6b' : '#6c757d',
+                                                        marginLeft: '0.25rem'
+                                                    }}
+                                                >
+                                                    {getCommentLikeCount(comment) > 0 && getCommentLikeCount(comment)}
+                                                </span>
+                                                {likingComments[comment.createdAt] && (
+                                                    <span className="ms-1" style={{ fontSize: '0.75rem' }}>...</span>
+                                                )}
+                                            </Button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

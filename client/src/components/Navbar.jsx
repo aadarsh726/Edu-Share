@@ -38,6 +38,9 @@ const AppNavbar = () => {
                                 <LinkContainer to="/upload">
                                     <Nav.Link>Upload</Nav.Link>
                                 </LinkContainer>
+                                <LinkContainer to="/leaderboard">
+                                    <Nav.Link>Leaderboard</Nav.Link>
+                                </LinkContainer>
                                 <LinkContainer to={`/profile/${auth.user.id}`}>
                                     <Nav.Link>Profile</Nav.Link>
                                 </LinkContainer>

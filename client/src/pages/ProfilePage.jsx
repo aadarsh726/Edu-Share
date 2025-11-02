@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Spinner, Alert, Card, Button, Row, Col, Image } from 'react-bootstrap';
+import { Container, Spinner, Alert, Card, Button, Row, Col, Image, Badge } from 'react-bootstrap';
 import { PersonPlusFill, PersonDashFill } from 'react-bootstrap-icons';
 import api from '../api/axios';
 import AuthContext from '../context/AuthContext';
@@ -120,9 +120,15 @@ const ProfilePage = () => {
                             <div>
                                 <h2 className="display-6 mb-0">{profile.username}</h2>
                                 <p className="text-white-50 mb-2">Role: {profile.role}</p>
-                                <div className="d-flex">
-                                    <p className="me-3"><strong>{profile.followers.length}</strong> Followers</p>
-                                    <p><strong>{profile.following.length}</strong> Following</p>
+                                <div className="d-flex align-items-center mb-2">
+                                    <p className="me-3 mb-0"><strong>{profile.followers.length}</strong> Followers</p>
+                                    <p className="mb-0"><strong>{profile.following.length}</strong> Following</p>
+                                </div>
+                                {/* Contribution Score Badge */}
+                                <div className="mt-2">
+                                    <Badge bg="primary" style={{ fontSize: '0.9rem', padding: '0.4rem 0.8rem' }}>
+                                        Contribution Score: <strong>{profile.score || 0}</strong>
+                                    </Badge>
                                 </div>
                             </div>
                             <div className="ms-auto">

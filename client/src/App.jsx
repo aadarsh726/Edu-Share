@@ -12,6 +12,7 @@ import RegisterPage from './pages/RegisterPage';
 import UploadPage from './pages/UploadPage'; // <-- 1. IMPORT IT
 import FeedPage from './pages/FeedPage'; // <-- 1. IMPORT IT
 import ProfilePage from './pages/ProfilePage'; // <-- 1. IMPORT IT
+import LeaderboardPage from './pages/LeaderboardPage';
 function App() {
     return (
         <AuthProvider>
@@ -30,6 +31,7 @@ function App() {
                     <Route path="/upload" element={<UploadPage />} /> {/* <-- 2. ADD THIS ROUTE */}
                     <Route path="/feed" element={<FeedPage />} /> {/* <-- 2. ADD THIS ROUTE */}
                     <Route path="/profile/:id" element={<ProfilePage />} /> {/* <-- 2. ADD THIS ROUTE */}
+                    <Route path="/leaderboard" element={<LeaderboardPage />} />
                 </Routes>
             </main>
           </div>

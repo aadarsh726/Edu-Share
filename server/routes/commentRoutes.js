@@ -1,6 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const Post = require('../models/Post');
+const { likeComment, unlikeComment } = require('../controllers/commentLikeController');
+const { protect } = require('../middleware/authMiddleware');
+const { updateUserScore } = require('../utils/scoreUtils');
+
+// IMPORTANT: More specific routes must come before parameterized routes
+// @route   POST /api/comments/:postId/like
+// @desc    Like a comment (add user to comment's likes array)
+// @access  Private (requires token)
+router.post('/:postId/like', protect, likeComment);
+
+// @route   POST /api/comments/:postId/unlike
+// @desc    Unlike a comment (remove user from comment's likes array)
+// @access  Private (requires token)
+router.post('/:postId/unlike', protect, unlikeComment);
 
 // @route   POST /api/comments/:postId
 // @desc    Add a comment to a post
@@ -29,11 +43,12 @@ router.post('/:postId', async (req, res) => {
             post.comments = [];
         }
 
-        // Create new comment object
+        // Create new comment object with empty likes array
         const newComment = {
             text,
             username,
-            createdAt: new Date()
+            createdAt: new Date(),
+            likes: [] // Initialize empty likes array
         };
 
         // Push comment to post's comments array
@@ -44,6 +59,9 @@ router.post('/:postId', async (req, res) => {
 
         // Populate author before sending response
         await updatedPost.populate('author', 'username');
+
+        // Award +2 points to post author for receiving a comment
+        await updateUserScore(post.author._id || post.author, 2);
 
         res.status(200).json(updatedPost);
 

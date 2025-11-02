@@ -34,9 +34,17 @@ const UserSchema = new mongoose.Schema({
     following: [{ 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User' 
-    }]
-    // We will add followers/following here in Phase 5
+    }],
+    // Contribution score: tracks user's contribution to the platform
+    score: {
+        type: Number,
+        default: 0,
+        min: 0
+    }
     
 }, { timestamps: true }); // Automatically adds createdAt and updatedAt
+
+// Index for efficient leaderboard queries
+UserSchema.index({ score: -1 });
 
 module.exports = mongoose.model('User', UserSchema);

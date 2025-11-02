@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Post = require('../models/Post');
+const { updateUserScore } = require('../utils/scoreUtils');
 
 // @desc    Get a user's profile
 // @route   GET /api/users/:id
@@ -47,6 +48,9 @@ exports.followUser = async (req, res) => {
             $addToSet: { followers: currentUserId }
         });
 
+        // Award +3 points to followed user
+        await updateUserScore(targetUserId, 3);
+
         res.status(200).json({ msg: 'User followed' });
 
     } catch (err) {
@@ -72,6 +76,9 @@ exports.unfollowUser = async (req, res) => {
         await User.findByIdAndUpdate(targetUserId, {
             $pull: { followers: currentUserId }
         });
+
+        // Remove 3 points when unfollowed
+        await updateUserScore(targetUserId, -3);
 
         res.status(200).json({ msg: 'User unfollowed' });
 
