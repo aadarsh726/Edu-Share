@@ -10,6 +10,13 @@ const PostSchema = new mongoose.Schema({
         ref: 'User', 
         required: true 
     },
+    comments: [
+        {
+            text: { type: String, required: true },
+            username: { type: String, required: true },
+            createdAt: { type: Date, default: Date.now }
+        }
+    ],
     // We can add likes later
     // likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
     

@@ -3,6 +3,7 @@ import { Container, Row, Col, Spinner, Alert, Form, Button, InputGroup, Toast, T
 import { ChatDotsFill, Search } from 'react-bootstrap-icons';
 import api from '../api/axios';
 import ResourceCard from '../components/ResourceCard';
+import AIBotChat from '../components/AIBotChat';
 import AuthContext from '../context/AuthContext';
 
 const HomePage = () => {
@@ -16,6 +17,7 @@ const HomePage = () => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [toastVariant, setToastVariant] = useState('success');
+    const [showAIChat, setShowAIChat] = useState(false);
     const { auth } = useContext(AuthContext);
 
     // Fetch resources (paginated)
@@ -153,9 +155,12 @@ const HomePage = () => {
 
             {/* --- 3. AI BOT (our existing code) --- */}
             {auth.isAuthenticated && (
-                <div className="ai-bot-fab" title="AI Chat Assistant" onClick={() => alert('AI Bot chat window will open here!')}>
-                    <ChatDotsFill size={28} />
-                </div>
+                <>
+                    <div className="ai-bot-fab" title="AI Chat Assistant" onClick={() => setShowAIChat(true)}>
+                        <ChatDotsFill size={28} />
+                    </div>
+                    <AIBotChat show={showAIChat} onHide={() => setShowAIChat(false)} />
+                </>
             )}
 
             {/* Toast Container */}

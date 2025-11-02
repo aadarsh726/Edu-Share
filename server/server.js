@@ -18,6 +18,12 @@ app.use(express.json()); // Allows us to read JSON data from request bodies
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/resources', require('./routes/resources'));
 app.use('/api/posts', require('./routes/posts'));
+// Comments route
+const commentRoutes = require('./routes/commentRoutes');
+app.use('/api/comments', commentRoutes);
+console.log('✅ Comments route registered at /api/comments');
+app.use('/api/chatbot', require('./routes/chatbot'));
+console.log('✅ Chatbot route registered at /api/chatbot');
 app.use('/api/users', require('./routes/users'));
 
 // 6. Connect to Database
