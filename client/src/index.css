@@ -1,0 +1,57 @@
+/* --- Global Dark Theme --- */
+body {
+    /* This is the root cause fix */
+    background-color: #212529 !important; /* Bootstrap's 'dark' color */
+    color: #f8f9fa !important;             /* Bootstrap's 'light' color */
+}
+
+/* --- AI Bot Button (we already had this) --- */
+.ai-bot-fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    background-color: var(--bs-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(13, 110, 253, 0.4);
+    z-index: 1000;
+}
+
+.ai-bot-fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(13, 110, 253, 0.6);
+}
+
+/* --- The "Glow" Effect for Cards (we already had this) --- */
+.card-hover-glow {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.card-hover-glow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(13, 110, 253, 0.3);
+    border-color: rgba(13, 110, 253, 0.5);
+}
+
+/* --- Hero Search Bar (we already had this) --- */
+.hero-search .form-control {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.1);
+    padding: 0.75rem 1.25rem;
+}
+
+.hero-search .form-control:focus {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.5);
+    border-color: var(--bs-primary);
+}
