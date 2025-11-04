@@ -22,6 +22,10 @@ const UserSchema = new mongoose.Schema({
         required: [true, 'Please provide a password'], 
         minlength: 6 
     },
+    bio: {
+        type: String,
+        default: ''
+    },
     role: { 
         type: String, 
         enum: ['student', 'teacher'], 
@@ -40,11 +44,25 @@ const UserSchema = new mongoose.Schema({
         type: Number,
         default: 0,
         min: 0
+    },
+    // Weekly score resets every Sunday at midnight
+    weeklyScore: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
+    // Lifetime score never resets
+    lifetimeScore: {
+        type: Number,
+        default: 0,
+        min: 0
     }
     
 }, { timestamps: true }); // Automatically adds createdAt and updatedAt
 
-// Index for efficient leaderboard queries
+// Indexes for efficient leaderboard queries
 UserSchema.index({ score: -1 });
+UserSchema.index({ weeklyScore: -1 });
+UserSchema.index({ lifetimeScore: -1 });
 
 module.exports = mongoose.model('User', UserSchema);

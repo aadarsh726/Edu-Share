@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Card, Button, Collapse, Form, InputGroup } from 'react-bootstrap';
+import { Card, Button, Collapse, Form, InputGroup, Spinner } from 'react-bootstrap';
 import { Chat, Send, Heart, HeartFill } from 'react-bootstrap-icons';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
@@ -16,6 +16,9 @@ const PostCard = ({ post: initialPost, onCommentAdded, showToast }) => {
     const [likingPost, setLikingPost] = useState(false);
     const [likingComments, setLikingComments] = useState({}); // Track which comment is being liked
     const { auth } = useContext(AuthContext);
+    const [showSummary, setShowSummary] = useState(false);
+    const [summary, setSummary] = useState('');
+    const [summarizing, setSummarizing] = useState(false);
 
     // Update local post state when prop changes
     useEffect(() => {
@@ -223,6 +226,57 @@ const PostCard = ({ post: initialPost, onCommentAdded, showToast }) => {
                     <span className="ms-2">· {new Date(post.createdAt).toLocaleDateString()}</span>
                 </Card.Subtitle>
                 <Card.Text style={{ whiteSpace: 'pre-wrap' }}>{post.content}</Card.Text>
+
+                {/* Summarize with AI */}
+                {typeof post.content === 'string' && post.content.trim().length > 0 && (
+                    <div className="mb-2">
+                        <Button
+                            variant="outline-info"
+                            size="sm"
+                            disabled={summarizing}
+                            onClick={async () => {
+                                if (!showSummary) {
+                                    setShowSummary(true);
+                                }
+                                if (!summary) {
+                                    try {
+                                        setSummarizing(true);
+                                        const response = await api.post(
+                                            '/chatbot',
+                                            { message: post.content, mode: 'summarize' },
+                                            { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                                        );
+                                        setSummary(response.data?.response || 'No summary available.');
+                                    } catch (e) {
+                                        setSummary("Sorry, I couldn't generate a summary.");
+                                    } finally {
+                                        setSummarizing(false);
+                                    }
+                                } else {
+                                    setShowSummary((v) => !v);
+                                }
+                            }}
+                        >
+                            {summarizing ? (
+                                <>
+                                    <Spinner as="span" animation="border" size="sm" className="me-2" /> Summarizing...
+                                </>
+                            ) : (
+                                'Summarize with AI'
+                            )}
+                        </Button>
+                        <Collapse in={showSummary}>
+                            <div>
+                                <Card className="mt-2" bg="secondary" text="white">
+                                    <Card.Body>
+                                        <Card.Title className="h6 mb-2">AI Summary</Card.Title>
+                                        <Card.Text style={{ whiteSpace: 'pre-wrap' }}>{summary}</Card.Text>
+                                    </Card.Body>
+                                </Card>
+                            </div>
+                        </Collapse>
+                    </div>
+                )}
             </Card.Body>
             <Card.Footer className="bg-transparent border-top border-secondary d-flex justify-content-between align-items-center">
                 {/* Post Like Button */}

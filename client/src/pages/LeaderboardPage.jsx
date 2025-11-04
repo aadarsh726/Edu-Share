@@ -92,7 +92,7 @@ const LeaderboardPage = () => {
                                     <tr>
                                         <th style={{ width: '10%' }}>Rank</th>
                                         <th style={{ width: '50%' }}>Username</th>
-                                        <th style={{ width: '40%' }} className="text-end">Contribution Score</th>
+                                        <th style={{ width: '40%' }} className="text-end">Weekly / Lifetime</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -114,9 +114,14 @@ const LeaderboardPage = () => {
                                                     </Link>
                                                 </td>
                                                 <td className="align-middle text-end">
-                                                    <Badge bg="primary" style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}>
-                                                        {user.score || 0} points
-                                                    </Badge>
+                                                    <div className="d-flex justify-content-end gap-2">
+                                                        <Badge bg="primary" style={{ fontSize: '0.95rem', padding: '0.4rem 0.8rem' }}>
+                                                            Weekly: {user.weeklyScore ?? user.score ?? 0}
+                                                        </Badge>
+                                                        <Badge bg="secondary" style={{ fontSize: '0.95rem', padding: '0.4rem 0.8rem' }}>
+                                                            Lifetime: {user.lifetimeScore ?? user.score ?? 0}
+                                                        </Badge>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         );

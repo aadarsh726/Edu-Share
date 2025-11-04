@@ -56,3 +56,11 @@ app.listen(PORT, () => {
  // <-- ADD THIS LINE
 
 // ... (rest of your code) ...
+
+// 8. Start background jobs
+try {
+    const { startWeeklyResetScheduler } = require('./jobs/weeklyReset');
+    startWeeklyResetScheduler();
+} catch (e) {
+    console.warn('⚠️  Failed to start weekly reset scheduler:', e.message);
+}

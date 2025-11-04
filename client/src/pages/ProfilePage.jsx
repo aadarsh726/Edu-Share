@@ -18,6 +18,7 @@ const ProfilePage = () => {
 
     const [isFollowing, setIsFollowing] = useState(false);
     const [isCurrentUser, setIsCurrentUser] = useState(false);
+    // (bio UI removed)
 
     // Function to fetch all profile data
     const fetchProfile = async () => {
@@ -40,6 +41,8 @@ const ProfilePage = () => {
             setLoading(false);
         }
     };
+
+    // (bio handlers removed)
 
     useEffect(() => {
         fetchProfile();
@@ -136,6 +139,8 @@ const ProfilePage = () => {
                             </div>
                         </Card.Body>
                     </Card>
+
+                    {/* Bio Section removed as requested */}
 
                     {/* User's Posts */}
                     <h3 className="mb-3">Posts by {profile.username}</h3>

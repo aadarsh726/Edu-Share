@@ -26,6 +26,58 @@ exports.getUserProfile = async (req, res) => {
     }
 };
 
+// @desc    Update current user's bio
+// @route   PUT /api/users/:id/bio
+// @access  Private
+exports.updateBio = async (req, res) => {
+    try {
+        const targetUserId = req.params.id;
+        const currentUserId = req.user.id;
+
+        if (targetUserId !== currentUserId) {
+            return res.status(403).json({ msg: 'You can only edit your own bio' });
+        }
+
+        const { bio } = req.body;
+        const updated = await User.findByIdAndUpdate(
+            currentUserId,
+            { $set: { bio: bio ?? '' } },
+            { new: true }
+        ).select('-password');
+
+        if (!updated) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        res.status(200).json({ user: updated });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+// @desc    Update current user's bio (no path param)
+// @route   PUT /api/users/me/bio
+// @access  Private
+exports.updateMyBio = async (req, res) => {
+    try {
+        const currentUserId = req.user.id;
+        const { bio } = req.body;
+        const updated = await User.findByIdAndUpdate(
+            currentUserId,
+            { $set: { bio: bio ?? '' } },
+            { new: true }
+        ).select('-password');
+        if (!updated) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+        res.status(200).json({ user: updated });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
 // @desc    Follow a user
 // @route   POST /api/users/:id/follow
 // @access  Private

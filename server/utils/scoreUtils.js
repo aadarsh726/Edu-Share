@@ -13,18 +13,23 @@ const updateUserScore = async (userId, points) => {
             return null;
         }
 
-        // Use $inc to atomically increment the score
+        // Use $inc to atomically increment scores
         // This prevents race conditions when multiple actions happen simultaneously
         const updatedUser = await User.findByIdAndUpdate(
             userId,
-            { $inc: { score: points } },
+            { $inc: { score: points, weeklyScore: points, lifetimeScore: points } },
             { new: true } // Return updated document
         );
 
-        // Ensure score doesn't go below 0
-        if (updatedUser && updatedUser.score < 0) {
-            updatedUser.score = 0;
-            await updatedUser.save();
+        // Ensure scores don't go below 0
+        if (updatedUser) {
+            let changed = false;
+            if (updatedUser.score < 0) { updatedUser.score = 0; changed = true; }
+            if (updatedUser.weeklyScore < 0) { updatedUser.weeklyScore = 0; changed = true; }
+            if (updatedUser.lifetimeScore < 0) { updatedUser.lifetimeScore = 0; changed = true; }
+            if (changed) {
+                await updatedUser.save();
+            }
         }
 
         return updatedUser;
